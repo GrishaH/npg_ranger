@@ -194,7 +194,11 @@ if ( token_config ) {
     if ( !tokenContentConfig.hasOwnProperty(TOKEN_CONFIG_KEY_NAME) ) {
       throw(new Error('cannot find token key in configuration'));
     }
+    let b64test = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
     token = tokenContentConfig[TOKEN_CONFIG_KEY_NAME];
+    if ( !b64test.test(token) ) {
+      throw(new Error('The token must be a valid base64 encoded string'));
+    }
     LOGGER.info(`With token sourced from ${token_path}`);
   } catch ( e ) {
     exitWithError(`parsing configuration file ${e}`);
