@@ -247,7 +247,7 @@ describe('token bearer', () => {
         });
         client.on('close', function(code) {
           expect(stdout).toEqual('');
-          expect(stderr).toMatch(/The header content contains invalid characters/i);
+          expect(stderr).toMatch(/The token must be a valid base64 encoded string/i);
           expect(code).toBe(1);
           done();
         });
@@ -291,7 +291,7 @@ describe('token bearer', () => {
       let configFile = `${tmpDir}/clientconf1.json`;
 
       let conf = {};
-      conf[TOKEN_CONFIG_KEY_NAME] = 'expectedtoken';
+      conf[TOKEN_CONFIG_KEY_NAME] = 'expectedtokens==';
 
       fse.writeFileSync(
         configFile,
@@ -302,7 +302,7 @@ describe('token bearer', () => {
         let headers = req.headers;
         let myHeader = {};
         // Needs lowercase because header names are provided lowercase from req
-        myHeader[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken';
+        myHeader[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtokens==';
         expect(headers).toEqual(jasmine.objectContaining(myHeader));
         res.end();
         done();
@@ -321,7 +321,7 @@ describe('token bearer', () => {
       let totalReqs = 0;
 
       let conf = {};
-      conf[TOKEN_CONFIG_KEY_NAME] = 'expectedtoken';
+      conf[TOKEN_CONFIG_KEY_NAME] = 'firsttoken==';
 
       fse.writeFileSync(
         configFile,
@@ -333,23 +333,22 @@ describe('token bearer', () => {
         let r1 = url.parse(req.url, true);
 
         totalReqs += 1;
-
         let myHeader = {};
         // Needs lowercase because header names are provided lowercase from req
-        myHeader[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken';
+        myHeader[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer firsttoken==';
 
         if ( /json/.test(r1.pathname) ) {
           expect(headers).toEqual(jasmine.objectContaining(myHeader));
 
           res.writeHead(200, {'Content-Type': 'application/json'});
-          let encoded = new Buffer('333', 'ascii').toString('base64');
+          let encoded = Buffer.from('333', 'ascii').toString('base64');
           res.end(JSON.stringify({
             htsget: {
               format: "BAM",
               urls: [{
                 url: `http://localhost:${SERV_PORT}/data?value=1`,
                 headers: {
-                  'Authorization': 'Bearer expectedtoken2'
+                  'Authorization': 'Bearer expectedtoken2=='
                 }
               }, {
                 url: `http://localhost:${SERV_PORT}/data?value=2`
@@ -358,18 +357,17 @@ describe('token bearer', () => {
               }, {
                 url: `http://localhost:${SERV_PORT}/data?value=4`,
                 headers: {
-                  'Authorization': 'Bearer expectedtoken4'
+                  'Authorization': 'Bearer expectedtoken4=='
                 }
               }]
             }
           }));
         } else {
           expect(headers).not.toEqual(jasmine.objectContaining(myHeader));
-
           let myHeader2 = {};
-          myHeader2[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken2';
+          myHeader2[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken2==';
           let myHeader3 = {};
-          myHeader3[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken4';
+          myHeader3[TOKEN_BEARER_KEY_NAME.toLowerCase()] = 'Bearer expectedtoken4==';
 
           if (/value=1/.test(r1.path)) {
             expect(headers).toEqual(jasmine.objectContaining(myHeader2));
