@@ -107,6 +107,7 @@ const constants     = require('../lib/constants');
 
 const TOKEN_BEARER_KEY_NAME = constants.TOKEN_BEARER_KEY_NAME;
 const TOKEN_CONFIG_KEY_NAME = constants.TOKEN_CONFIG_KEY_NAME;
+const B64_TEST = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 cline
   .version(require('../package.json').version)
@@ -194,9 +195,8 @@ if ( token_config ) {
     if ( !tokenContentConfig.hasOwnProperty(TOKEN_CONFIG_KEY_NAME) ) {
       throw(new Error('cannot find token key in configuration'));
     }
-    let b64test = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
     token = tokenContentConfig[TOKEN_CONFIG_KEY_NAME];
-    if ( !b64test.test(token) ) {
+    if ( !B64_TEST.test(token) ) {
       throw(new Error('The token must be a valid base64 encoded string'));
     }
     LOGGER.info(`With token sourced from ${token_path}`);
